@@ -1,0 +1,194 @@
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.concurrent.LinkedBlockingQueue;
+
+
+public class CommandManager {
+	public String input;
+	public String[] pinput;
+	public int repeater;
+	public int pipecatcher;
+	public static LinkedList<String> hist;
+	public static String path;
+	public ArrayList<String> command;
+	public Boolean pipin;
+
+	public CommandManager(String input, LinkedList<String> shellhist) {
+		this.repeater = 0;
+		this.pipecatcher = 0;
+		if (! input.contains(">") && ! input.contains("cd") && ! input.contains("exit")){
+			this.input=input+" | stdout";
+		}
+		else{
+			this.input = input;
+		}		
+		CommandManager.hist=shellhist;
+		this.pipin=false;
+		CommandManager.path= System.getProperty("user.dir");
+		this.input = this.input.replaceAll(">", "\\| >");
+		this.pinput=this.input.split("(\\|+)");
+		this.command= new ArrayList<String>(Arrays.asList(pinput));
+		for(int i =0; i<command.size(); i++){ //strips whitespace
+			String temp = command.get(i).trim();
+			command.remove(i);
+			command.add(i, temp);
+		}
+		if (command.size()>1){
+			pipin= true;
+		}
+	}
+
+
+	public void process() {
+		LinkedBlockingQueue<Object> prev= null;
+		LinkedBlockingQueue<Object> out = null;
+		Filter temp = null;
+		for(int i =0;i<command.size(); i++){
+			repeater++;
+			String f = command.get(i);
+			String[] com = f.split(" ");
+			String finder = com[0];
+			String[] ar= java.util.Arrays.copyOfRange(com, 1, com.length);
+			if(pipecatcher == 0){
+				if (finder.equals("pwd")) {
+					out= new LinkedBlockingQueue<Object>();
+					temp = new pwd(prev, out);
+					prev = out;
+					temp.start();
+					
+				}
+	
+				else if (finder.equals("ls")) {
+					out= new LinkedBlockingQueue<Object>();
+					temp= new ls(prev, out);
+					prev = out;
+					temp.start();
+					
+				}
+	
+				else if (finder.equals("cat")) {	
+					if (repeater > 2){
+						System.out.println("invalid pipe order");
+						this.pipecatcher = 1;
+					}
+					else{
+					out= new LinkedBlockingQueue<Object>();
+					temp= new cat(prev, out, ar);
+					prev = out;
+					temp.start();
+					}
+				}		
+	
+				else if (finder.equals("cd")) {
+					if (repeater > 2){
+						System.out.println("invalid pipe order");
+						this.pipecatcher = 1;
+					}
+					else{
+						out= new LinkedBlockingQueue<Object>();
+						temp= new cd(null, null, ar);
+						prev = out;
+						temp.start();
+						this.pipecatcher = 1;
+					}
+				}
+	
+				else if (finder.equals("grep")) {
+					if (repeater < 2){
+						System.out.println("invalid pipe order");
+						this.pipecatcher = 2;
+					}
+					else if (ar==null){
+						System.out.println("missing arguement");
+						this.pipecatcher = 2;
+					}
+					else{				
+						out= new LinkedBlockingQueue<Object>();
+						temp = new grep(prev, out, ar);
+						prev = out;
+						temp.start();
+					}
+				}
+	
+				else if (finder.equals("sleep")) {
+					int n = Integer.parseInt(ar[0]);
+					if(n < 1){
+						this.pipecatcher = 2;
+						System.out.println("invalid argument");
+					}
+					out= new LinkedBlockingQueue<Object>();
+					temp = new SubCmd_Sleep(prev, out, n);
+					prev = out;
+					temp.start();
+					
+				}
+	
+				else if (finder.equals("exit")) {
+					out= new LinkedBlockingQueue<Object>();
+					temp= new exit(null, null);
+					prev = out;
+					temp.start();
+					pipecatcher = 1;					
+				}
+	
+				else if (finder.equals("lc")) {
+					if (repeater < 2){
+						System.out.println("invalid pipe order");
+						this.pipecatcher = 2;
+					}
+					else{
+					out= new LinkedBlockingQueue<Object>();
+					temp = new lc(prev, out);
+					prev = out;
+					temp.start();
+					}				
+				}
+	
+				else if (finder.equals(">")) {
+					out= new LinkedBlockingQueue<Object>();
+					temp = new fileredirect(prev, out, ar);
+					prev = out;
+					temp.start();
+					
+				}
+	
+				else if (finder.equals("history")) {
+					if (repeater > 2){
+						System.out.println("invalid pipe order");
+						this.pipecatcher = 2;
+					}
+					else{
+						out= new LinkedBlockingQueue<Object>();
+						temp = new Hist(prev, out);
+						prev = out;
+						temp.start();
+					}					
+				}
+				else if (finder.equals("stdout")) {
+					out= new LinkedBlockingQueue<Object>();
+					temp = new stdout(prev, out);
+					prev = out;
+					temp.start();
+					
+				}
+				else{
+					System.out.println("invalid command");
+					pipecatcher = 2;
+				}
+			}
+			
+		}
+		if(pipecatcher!=2){
+			try {
+				temp.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+		public void kill() {
+			//unnecessary except for 4
+		}
+	}
