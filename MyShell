@@ -1,0 +1,32 @@
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Scanner;
+import java.util.LinkedList;
+
+public class MyShell {
+	public static boolean session;
+	public static Path myPath;
+	
+	public static void main(String[] args) {
+		myPath = Paths.get(System.getProperty("user.dir"));
+		session=true;
+		LinkedList<String> history= new LinkedList<String>();
+		Scanner input = new Scanner(System.in);
+		String s= "";
+		CommandManager line = null;
+		while (session==true){				
+			System.out.print("> ");                       
+		    s = input.nextLine();  
+		    history.add(s);
+		    line = new CommandManager(s, history);    //makes a new CommandManager instance
+		    line.process(); 
+		}
+		System.out.println("REPL exits. Bye.");
+		input.close();
+	}
+
+	public static void timetogo() {
+		session = false;
+		
+	}
+}
