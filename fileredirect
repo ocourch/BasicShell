@@ -1,0 +1,53 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.LinkedBlockingQueue;
+
+
+
+public class fileredirect extends Filter implements Runnable {
+	public String dest;
+	
+	public fileredirect (LinkedBlockingQueue<Object> in, LinkedBlockingQueue<Object> out, String[] ar){
+		super(in, out);
+		this.dest=ar[0];
+	}
+	
+	public void run() {
+		
+        Object o = null;
+        File f= new File(dest);
+        Path filechecker = MyShell.myPath.resolve(dest);
+        PrintWriter writer=null;
+        try {
+			writer = new PrintWriter(filechecker.toFile());
+		} catch (FileNotFoundException e1) {
+			e1.printStackTrace();
+		}
+        if (f.exists()){
+        	f.delete();
+        }
+        while(! this.done) {
+            try {
+				o = in.take();
+				if (! o.equals("&&&")){
+				writer.println(o.toString());
+				}
+				else{
+					this.done=true;
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}    
+        }
+        this.done=true;
+	}
+
+	@Override
+	public Object transform(Object o) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+}
