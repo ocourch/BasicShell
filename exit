@@ -1,0 +1,17 @@
+import java.util.concurrent.LinkedBlockingQueue;
+
+public class exit extends Filter implements Runnable {
+	
+	public exit (LinkedBlockingQueue<Object> in, LinkedBlockingQueue<Object> out){
+		super(in, out);
+	}
+	
+	public void run() {
+       MyShell.timetogo();
+	}
+
+	@Override
+	public Object transform(Object o) {tub
+		return null;
+	}
+}
