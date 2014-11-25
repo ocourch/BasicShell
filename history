@@ -1,0 +1,39 @@
+import java.util.LinkedList;
+import java.util.concurrent.LinkedBlockingQueue;
+
+
+
+public class Hist extends Filter implements Runnable {
+	public Object[] hist;
+	
+	public Hist(LinkedBlockingQueue<Object> in, LinkedBlockingQueue<Object> out) {
+		super(in, out);
+		this.hist = CommandManager.hist.toArray();
+		System.out.println(this.hist);
+	}
+	
+	@Override
+	public void run() {
+        for (int i = 0; i<this.hist.length; i++){
+			Object temp = hist[i]; 
+            try {
+				out.put(temp);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+        }
+        try {
+			out.put("&&&");
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+        this.done=true;
+	}
+
+
+
+	@Override
+	public Object transform(Object o) {
+		return null;
+	}
+}
