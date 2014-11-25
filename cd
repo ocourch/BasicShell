@@ -1,0 +1,40 @@
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.concurrent.LinkedBlockingQueue;
+
+
+
+public class cd extends Filter implements Runnable {
+	public String dir;
+	
+	public cd (LinkedBlockingQueue<Object> in, LinkedBlockingQueue<Object> out, String[] ar){
+		super(in, out);
+		this.dir=ar[0];
+	}
+
+	@Override
+	public void run() {
+		
+		Path temp = MyShell.myPath.resolve(dir);
+		try {
+			temp = temp.toRealPath();
+		} catch (IOException e) {
+			System.out.println("directory not found");
+		}
+		boolean check = Files.isDirectory(temp);
+		if (check){
+			MyShell.myPath = temp;
+		}
+		else{
+			System.out.println("Incorrect directory");
+		}	
+		this.done=true;
+}
+
+
+	@Override
+	public Object transform(Object o) {
+		return null;
+	}
+}
