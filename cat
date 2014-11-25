@@ -1,0 +1,84 @@
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.LinkedBlockingQueue;
+
+
+public class cat extends Filter implements Runnable {
+	public String[] srg;
+
+
+	public cat (LinkedBlockingQueue<Object> in, LinkedBlockingQueue<Object> out, String[] ar){
+		super(in, out);
+		this.srg=ar;
+
+	}
+
+	public void run() {
+		for (int i=0; i<srg.length; i++) {			
+			Path filechecker = Paths.get(srg[i]);
+			Path temp = MyShell.myPath.resolve(filechecker);
+			try {
+				temp = temp.toRealPath();
+			} catch (IOException e3) {
+				System.out.println("file not found");
+				e3.printStackTrace();
+			}
+
+			try(BufferedReader br = new BufferedReader(new FileReader(temp.toFile()))) {
+				String line = null;
+				try {
+					line = br.readLine();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+				while (line != null) {
+					try {
+						out.put(line);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					line = br.readLine();
+				}
+			} catch (FileNotFoundException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			} catch (IOException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+
+		}
+		try {
+			out.put("&&&");
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		this.done=true;
+	}	
+
+	private boolean fancyparsecheck(String j) { //checks if there is another file
+		String temp = j;
+		if (temp == null){
+			return false;
+		}
+		else{
+			char[] ar = temp.toCharArray();
+			int n = ar.length;
+			if(ar[n-1]=='t' && ar[n-2]=='x' && ar[n-3]=='t' && ar[n-4]=='.'){
+				return true;
+			}
+			else{
+				return false;
+			}
+		}	
+	}
+
+	@Override
+	public Object transform(Object o) {
+		return null;
+	}
+}
