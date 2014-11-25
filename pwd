@@ -1,0 +1,28 @@
+import java.util.concurrent.LinkedBlockingQueue;
+
+
+public class pwd extends Filter implements Runnable {
+	
+	public pwd (LinkedBlockingQueue<Object> in, LinkedBlockingQueue<Object> out){
+		super(in, out);
+	}
+	
+	@Override
+	public void run() {
+        Object o = MyShell.myPath.toString();       
+            try {
+				out.put(o);
+				out.put("&&&");
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+            this.done=true;
+     }
+
+	
+	@Override
+	public Object transform(Object o) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+}
