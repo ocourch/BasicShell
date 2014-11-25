@@ -1,0 +1,47 @@
+import java.util.concurrent.LinkedBlockingQueue;
+
+
+
+public class grep extends Filter implements Runnable {
+	public String token;
+
+	public grep (LinkedBlockingQueue<Object> in, LinkedBlockingQueue<Object> out, String[] ar){
+		super(in, out);
+		this.token=ar[0];
+	}
+
+	@Override
+	public void run() {
+		String o = "";
+		while(! this.done) {
+			try {
+				o = in.take().toString();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			if (o.equals("&&&")){
+				try {
+					out.put("&&&");
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				this.done=true;
+			}
+			else{
+				if (o.contains(token)){
+					try {
+						out.put(o);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		this.done=true;
+	}
+
+	@Override
+	public Object transform(Object o) {
+		return null;
+	}
+}
