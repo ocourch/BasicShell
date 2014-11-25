@@ -1,0 +1,32 @@
+import java.util.concurrent.LinkedBlockingQueue;
+
+
+public class stdout extends Filter implements Runnable {
+	
+	public stdout (LinkedBlockingQueue<Object> in, LinkedBlockingQueue<Object> out){
+		super(in, out);
+	}
+	
+	public void run() {
+        Object o = null;
+        while(! this.done) {
+            try {
+				o = in.take();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} 
+            if (! o.equals("&&&")){
+            System.out.println(o.toString());
+            }
+            else{
+            	this.done=true;
+            }
+        }
+	}
+
+	
+	@Override
+	public Object transform(Object o) {
+		return null;
+	}
+}
