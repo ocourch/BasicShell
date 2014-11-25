@@ -1,0 +1,46 @@
+import java.util.concurrent.LinkedBlockingQueue;
+import java.lang.Long;
+
+/*
+ * This is only partially implemented and the duration is set to 5 seconds by default. 
+ * Your implementation should be able to set duration by passing argument.
+ */
+public class SubCmd_Sleep extends Filter {
+	int duration = 0;
+
+	public SubCmd_Sleep(LinkedBlockingQueue<Object> in, LinkedBlockingQueue<Object> out, int sl) {
+		super(in, out);
+		duration = sl;
+	}
+
+
+	@Override
+	public void run() {
+		while (!this.done) {
+			try {				
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				System.err.println(Thread.currentThread().getName() + " 's sleep has been interrupted.");
+			}
+			try {				
+				out.put("Sleep: " + --duration + " seconds left.");
+			} catch (InterruptedException e) {
+				System.err.println(Thread.currentThread().getName() + " 's sleep has been interrupted.");
+			}
+			if (duration == 0) {
+				try {				
+					out.put("&&&");
+				} catch (InterruptedException e) {
+					System.err.println(Thread.currentThread().getName() + " 's sleep has been interrupted.");
+				}
+				this.done = true;
+			}
+		}
+	}
+
+
+	@Override
+	public Object transform(Object o) {
+		return null;
+	}
+}
